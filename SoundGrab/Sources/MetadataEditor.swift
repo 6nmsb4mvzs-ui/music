@@ -24,6 +24,7 @@ struct MetadataEditor: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .strokeBorder(.quaternary)
+                            .allowsHitTesting(false)
                     )
                     .onTapGesture { pickImage() }
 

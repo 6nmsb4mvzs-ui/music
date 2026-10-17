@@ -158,6 +158,7 @@ struct DownloadsView: View {
                                 detectedPlatform?.color.opacity(0.6) ?? Color.clear,
                                 lineWidth: 2
                             )
+                            .allowsHitTesting(false)
                     )
                     .onChange(of: urlText) { _, val in
                         let trimmed = val.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -467,6 +468,7 @@ struct PreviewCard: View {
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .strokeBorder(preview.platform.color.opacity(0.2), lineWidth: 1)
+                .allowsHitTesting(false)
         )
     }
 }
