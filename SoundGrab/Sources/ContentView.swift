@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 // MARK: - Root
 
@@ -141,6 +142,7 @@ struct DownloadsView: View {
     @State private var isFetchingPreview = false
     @State private var previewTitle = ""
     @State private var previewArtist = ""
+    @State private var previewCover: Data?
     @State private var fetchID = UUID()
 
     var body: some View {
@@ -188,6 +190,7 @@ struct DownloadsView: View {
                         preview: p,
                         title: $previewTitle,
                         artist: $previewArtist,
+                        coverData: $previewCover,
                         importToMusic: $importToMusic,
                         onDownload: { startDownload() },
                         onDismiss: { dismissPreview() }
@@ -290,6 +293,7 @@ struct DownloadsView: View {
         fetchID = thisID
         isFetchingPreview = true
         preview = nil
+        previewCover = nil
 
         Task {
             try? await Task.sleep(for: .milliseconds(300))
@@ -301,6 +305,7 @@ struct DownloadsView: View {
                     preview = p
                     previewTitle = p.title
                     previewArtist = p.artist
+                    previewCover = nil
                     isFetchingPreview = false
                 }
             } else {
@@ -317,6 +322,7 @@ struct DownloadsView: View {
             detectedPlatform = nil
             previewTitle = ""
             previewArtist = ""
+            previewCover = nil
         }
     }
 
@@ -324,15 +330,18 @@ struct DownloadsView: View {
         let url: String
         let editedTitle: String?
         let editedArtist: String?
+        let editedCover: Data?
 
         if let p = preview {
             url = p.url
             editedTitle = previewTitle != p.title ? previewTitle : nil
             editedArtist = previewArtist != p.artist ? previewArtist : nil
+            editedCover = previewCover
         } else {
             url = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
             editedTitle = nil
             editedArtist = nil
+            editedCover = nil
         }
 
         guard !url.isEmpty else { return }
@@ -356,10 +365,11 @@ struct DownloadsView: View {
             detectedPlatform = nil
             previewTitle = ""
             previewArtist = ""
+            previewCover = nil
         }
 
         Task {
-            await manager.submitURL(url, importToMusic: doImport, editedTitle: editedTitle, editedArtist: editedArtist)
+            await manager.submitURL(url, importToMusic: doImport, editedTitle: editedTitle, editedArtist: editedArtist, editedCover: editedCover)
         }
     }
 }
@@ -370,29 +380,59 @@ struct PreviewCard: View {
     let preview: TrackPreview
     @Binding var title: String
     @Binding var artist: String
+    @Binding var coverData: Data?
     @Binding var importToMusic: Bool
     var onDownload: () -> Void
     var onDismiss: () -> Void
 
+    @State private var isHoveringCover = false
+
+    private var displayCover: NSImage? {
+        if let d = coverData, let img = NSImage(data: d) { return img }
+        if let d = preview.thumbnailData, let img = NSImage(data: d) { return img }
+        return nil
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 14) {
-                if let data = preview.thumbnailData, let img = NSImage(data: data) {
-                    Image(nsImage: img)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 64, height: 64)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                } else {
-                    ZStack {
+                ZStack {
+                    if let img = displayCover {
+                        Image(nsImage: img)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 64, height: 64)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    } else {
                         RoundedRectangle(cornerRadius: 6)
                             .fill(preview.platform.color.opacity(0.15))
-                        Image(systemName: preview.platform.icon)
-                            .font(.title2)
-                            .foregroundStyle(preview.platform.color)
+                            .frame(width: 64, height: 64)
+                            .overlay(
+                                Image(systemName: preview.platform.icon)
+                                    .font(.title2)
+                                    .foregroundStyle(preview.platform.color)
+                            )
                     }
-                    .frame(width: 64, height: 64)
+
+                    if isHoveringCover {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(.black.opacity(0.5))
+                            .frame(width: 64, height: 64)
+                            .overlay(
+                                VStack(spacing: 2) {
+                                    Image(systemName: "photo")
+                                        .font(.body)
+                                    Text("Change")
+                                        .font(.caption2)
+                                }
+                                .foregroundStyle(.white)
+                            )
+                    }
                 }
+                .frame(width: 64, height: 64)
+                .onHover { isHoveringCover = $0 }
+                .onTapGesture { pickCover() }
+                .help("Click to change cover art")
 
                 if preview.isPlaylist {
                     VStack(alignment: .leading, spacing: 6) {
@@ -468,6 +508,18 @@ struct PreviewCard: View {
                 .strokeBorder(preview.platform.color.opacity(0.2), lineWidth: 1)
                 .allowsHitTesting(false)
         )
+    }
+
+    private func pickCover() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.jpeg, .png, .heic]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.message = "Choose cover art"
+        if panel.runModal() == .OK, let url = panel.url,
+           let data = try? Data(contentsOf: url) {
+            coverData = data
+        }
     }
 }
 

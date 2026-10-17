@@ -49,6 +49,27 @@ mkdir -p "$APP_DIR/Contents/Resources"
 
 cp .build/release/$APP_NAME "$APP_DIR/Contents/MacOS/$APP_NAME"
 
+# Build app icon from icon.jpg
+if [ -f "icon.jpg" ]; then
+    echo "Creating app icon..."
+    ICONSET=$(mktemp -d)/SoundGrab.iconset
+    mkdir -p "$ICONSET"
+    sips -s format png icon.jpg --out /tmp/sg_icon_src.png -z 1024 1024 >/dev/null 2>&1
+    for sz in 16 32 64 128 256 512 1024; do
+        sips -z $sz $sz /tmp/sg_icon_src.png --out "$ICONSET/icon_${sz}x${sz}.png" >/dev/null 2>&1
+    done
+    mv "$ICONSET/icon_32x32.png" "$ICONSET/icon_16x16@2x.png"
+    mv "$ICONSET/icon_64x64.png" "$ICONSET/icon_32x32@2x.png"
+    cp "$ICONSET/icon_256x256.png" "$ICONSET/icon_128x128@2x.png"
+    cp "$ICONSET/icon_512x512.png" "$ICONSET/icon_256x256@2x.png"
+    mv "$ICONSET/icon_1024x1024.png" "$ICONSET/icon_512x512@2x.png"
+    sips -z 16 16 /tmp/sg_icon_src.png --out "$ICONSET/icon_16x16.png" >/dev/null 2>&1
+    sips -z 32 32 /tmp/sg_icon_src.png --out "$ICONSET/icon_32x32.png" >/dev/null 2>&1
+    iconutil -c icns "$ICONSET" -o "$APP_DIR/Contents/Resources/AppIcon.icns" 2>/dev/null && \
+        echo "  Icon created." || echo "  Icon creation skipped."
+    rm -rf "$(dirname "$ICONSET")" /tmp/sg_icon_src.png
+fi
+
 cat > "$APP_DIR/Contents/Info.plist" << 'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -70,6 +91,8 @@ cat > "$APP_DIR/Contents/Info.plist" << 'PLIST'
     <string>APPL</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSHighResolutionCapable</key>
@@ -80,8 +103,9 @@ cat > "$APP_DIR/Contents/Info.plist" << 'PLIST'
 </plist>
 PLIST
 
-# Update Spotlight index
+# Update Spotlight and icon cache
 /usr/bin/mdimport "$APP_DIR" 2>/dev/null || true
+/usr/bin/touch "$APP_DIR"
 
 echo ""
 echo "Installed to ~/Applications/$APP_NAME.app"

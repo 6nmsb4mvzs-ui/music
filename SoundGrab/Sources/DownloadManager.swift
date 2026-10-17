@@ -128,7 +128,7 @@ final class DownloadManager {
 
     // MARK: - Submit
 
-    func submitURL(_ urlString: String, importToMusic: Bool, editedTitle: String? = nil, editedArtist: String? = nil) async {
+    func submitURL(_ urlString: String, importToMusic: Bool, editedTitle: String? = nil, editedArtist: String? = nil, editedCover: Data? = nil) async {
         guard let platform = Platform.detect(from: urlString) else { return }
 
         guard let ytdlp = ytdlpPath, let ffmpeg = ffmpegPath else { return }
@@ -141,6 +141,7 @@ final class DownloadManager {
             let item = DownloadItem(url: urlString, platform: platform, importToMusic: importToMusic)
             if let t = editedTitle { item.editedTitle = t }
             if let a = editedArtist { item.editedArtist = a }
+            if let c = editedCover { item.editedCover = c; item.coverData = c }
             items.insert(item, at: 0)
             await processItem(item, ytdlp: ytdlp, ffmpeg: ffmpeg)
         }
