@@ -84,9 +84,51 @@ final class DownloadManager {
         installOutput = ""
     }
 
+    // MARK: - Preview
+
+    func fetchPreview(_ urlString: String) async -> TrackPreview? {
+        guard let platform = Platform.detect(from: urlString),
+              let ytdlp = ytdlpPath else { return nil }
+
+        let preview = TrackPreview(url: urlString, platform: platform)
+
+        let isPlaylist = await checkIfPlaylist(urlString, ytdlp: ytdlp)
+        preview.isPlaylist = isPlaylist
+
+        if isPlaylist {
+            do {
+                let (output, _) = try await Self.exec(ytdlp, arguments: [
+                    "--flat-playlist", "--print", "id", urlString
+                ])
+                let count = output.components(separatedBy: "\n").filter { !$0.isEmpty }.count
+                preview.trackCount = count
+                preview.title = "Playlist"
+            } catch {}
+        } else {
+            do {
+                let (info, _) = try await Self.exec(ytdlp, arguments: [
+                    "--no-playlist", "--print",
+                    "%(title)s\n%(uploader)s\n%(duration)s\n%(thumbnail)s",
+                    urlString
+                ])
+                let parts = info.components(separatedBy: "\n").filter { !$0.isEmpty }
+                if parts.count >= 1 { preview.title = parts[0] }
+                if parts.count >= 2 { preview.artist = parts[1] }
+                if parts.count >= 3 { preview.duration = Double(parts[2]) }
+                if parts.count >= 4, let thumbURL = URL(string: parts[3]) {
+                    if let (data, _) = try? await URLSession.shared.data(from: thumbURL) {
+                        preview.thumbnailData = data
+                    }
+                }
+            } catch {}
+        }
+
+        return preview
+    }
+
     // MARK: - Submit
 
-    func submitURL(_ urlString: String, importToMusic: Bool) async {
+    func submitURL(_ urlString: String, importToMusic: Bool, editedTitle: String? = nil, editedArtist: String? = nil) async {
         guard let platform = Platform.detect(from: urlString) else { return }
 
         guard let ytdlp = ytdlpPath, let ffmpeg = ffmpegPath else { return }
@@ -97,6 +139,8 @@ final class DownloadManager {
             await downloadPlaylist(urlString, platform: platform, importToMusic: importToMusic, ytdlp: ytdlp, ffmpeg: ffmpeg)
         } else {
             let item = DownloadItem(url: urlString, platform: platform, importToMusic: importToMusic)
+            if let t = editedTitle { item.editedTitle = t }
+            if let a = editedArtist { item.editedArtist = a }
             items.insert(item, at: 0)
             await processItem(item, ytdlp: ytdlp, ffmpeg: ffmpeg)
         }

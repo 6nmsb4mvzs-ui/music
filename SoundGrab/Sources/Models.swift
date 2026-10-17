@@ -112,6 +112,31 @@ final class DownloadItem: Identifiable {
     var displayArtist: String { editedArtist ?? artist }
 }
 
+@Observable
+final class TrackPreview: Identifiable {
+    let id = UUID()
+    let url: String
+    let platform: Platform
+    var title: String = ""
+    var artist: String = ""
+    var duration: Double?
+    var thumbnailData: Data?
+    var isPlaylist: Bool = false
+    var trackCount: Int = 0
+
+    init(url: String, platform: Platform) {
+        self.url = url
+        self.platform = platform
+    }
+
+    var durationText: String? {
+        guard let d = duration, d > 0 else { return nil }
+        let m = Int(d) / 60
+        let s = Int(d) % 60
+        return String(format: "%d:%02d", m, s)
+    }
+}
+
 enum DownloadError: Error, LocalizedError {
     case notFound
     case downloadFailed(String)
