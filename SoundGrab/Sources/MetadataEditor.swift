@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct MetadataEditor: View {
     @Environment(\.dismiss) private var dismiss

@@ -6,7 +6,10 @@ enum MusicImporter {
         let path = escapePath(fileURL.path)
         let source = """
         tell application "Music"
-            add POSIX file "\(path)"
+            set addedTrack to (add POSIX file "\(path)" to library playlist 1)
+            try
+                set loved of addedTrack to true
+            end try
         end tell
         """
         return runScript(source)
@@ -21,6 +24,11 @@ enum MusicImporter {
 
         let source = """
         tell application "Music"
+            set addedTrack to (add POSIX file "\(path)" to library playlist 1)
+            try
+                set loved of addedTrack to true
+            end try
+
             set targetPlaylist to missing value
             try
                 set targetPlaylist to user playlist "\(name)"
@@ -28,7 +36,7 @@ enum MusicImporter {
             if targetPlaylist is missing value then
                 set targetPlaylist to make new user playlist with properties {name:"\(name)"}
             end if
-            add POSIX file "\(path)" to targetPlaylist
+            duplicate addedTrack to targetPlaylist
         end tell
         """
         return runScript(source)

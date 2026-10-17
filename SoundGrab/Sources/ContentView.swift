@@ -147,37 +147,28 @@ struct DownloadsView: View {
         VStack(spacing: 0) {
             VStack(spacing: 14) {
                 HStack(spacing: 10) {
-                    ZStack(alignment: .leading) {
-                        if urlText.isEmpty {
-                            Text("Paste any link — SoundCloud, YouTube, Instagram, TikTok")
-                                .foregroundStyle(.tertiary)
-                                .padding(.leading, 8)
-                        }
-                        TextField("", text: $urlText)
-                            .textFieldStyle(.plain)
-                            .padding(8)
-                            .onChange(of: urlText) { _, val in
-                                let trimmed = val.trimmingCharacters(in: .whitespacesAndNewlines)
-                                detectedPlatform = Platform.detect(from: trimmed)
-                                if detectedPlatform != nil && looksLikeURL(trimmed) {
-                                    triggerPreviewFetch(trimmed)
-                                } else {
-                                    preview = nil
-                                    isFetchingPreview = false
-                                }
-                            }
-                    }
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(nsColor: .controlBackgroundColor))
+                    TextField(
+                        "Paste any link — SoundCloud, YouTube, Instagram, TikTok",
+                        text: $urlText
                     )
+                    .textFieldStyle(.roundedBorder)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: 5)
                             .strokeBorder(
-                                detectedPlatform?.color.opacity(0.5) ?? Color.clear,
+                                detectedPlatform?.color.opacity(0.6) ?? Color.clear,
                                 lineWidth: 2
                             )
                     )
+                    .onChange(of: urlText) { _, val in
+                        let trimmed = val.trimmingCharacters(in: .whitespacesAndNewlines)
+                        detectedPlatform = Platform.detect(from: trimmed)
+                        if detectedPlatform != nil && looksLikeURL(trimmed) {
+                            triggerPreviewFetch(trimmed)
+                        } else {
+                            preview = nil
+                            isFetchingPreview = false
+                        }
+                    }
                     .onSubmit { startDownload() }
 
                     Button {

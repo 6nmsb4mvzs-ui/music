@@ -82,7 +82,20 @@ struct SettingsView: View {
     @ViewBuilder
     private var updateSection: some View {
         SettingsCard(title: "Updates", icon: "arrow.triangle.2.circlepath") {
-            if manager.updateChecker.isChecking {
+            if manager.updateChecker.isUpdating {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text(manager.updateChecker.updateProgress)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text("Don't close the app during update")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+            } else if manager.updateChecker.isChecking {
                 HStack(spacing: 8) {
                     ProgressView()
                         .controlSize(.small)
@@ -106,13 +119,11 @@ struct SettingsView: View {
                             .lineLimit(4)
                     }
 
-                    if let url = manager.updateChecker.downloadURL {
-                        Button("Download Update") {
-                            NSWorkspace.shared.open(url)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
+                    Button("Update Now") {
+                        Task { await manager.updateChecker.performUpdate() }
                     }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
                 }
             } else {
                 HStack(spacing: 8) {
@@ -127,6 +138,12 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
+            }
+
+            if let err = manager.updateChecker.updateError {
+                Text("Update failed: \(err)")
+                    .font(.caption)
+                    .foregroundStyle(.red)
             }
 
             if let last = manager.updateChecker.lastChecked {
