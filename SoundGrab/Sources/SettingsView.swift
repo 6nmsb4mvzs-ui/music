@@ -128,7 +128,7 @@ struct SettingsView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
-                    Text("You're on the latest version (2.0.0)")
+                    Text("You're on the latest version (2.1.0)")
                         .font(.body)
                 }
 
@@ -159,7 +159,7 @@ struct SettingsView: View {
     private var aboutSection: some View {
         SettingsCard(title: "About", icon: "info.circle") {
             VStack(alignment: .leading, spacing: 6) {
-                Text("SoundGrab v2.0.0")
+                Text("SoundGrab v2.1.0")
                     .font(.body.bold())
                 Text("Download audio from SoundCloud, YouTube, Instagram, and TikTok as 320kbps MP3.")
                     .font(.caption)

@@ -9,6 +9,10 @@ struct SoundGrabApp: App {
             ContentView()
                 .environment(manager)
                 .frame(minWidth: 700, minHeight: 520)
+                .onAppear {
+                    NSApp.setActivationPolicy(.regular)
+                    NSApp.activate(ignoringOtherApps: true)
+                }
         }
         .defaultSize(width: 800, height: 620)
         .windowStyle(.titleBar)

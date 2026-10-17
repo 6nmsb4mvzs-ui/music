@@ -1,6 +1,10 @@
 #!/bin/bash
-# Double-click this file to build and launch SoundGrab.
+# Double-click this file to build and install SoundGrab.app
+set -e
 cd "$(dirname "$0")"
+
+APP_NAME="SoundGrab"
+APP_DIR="$HOME/Applications/$APP_NAME.app"
 
 # Xcode CLI tools
 if ! xcode-select -p &>/dev/null; then
@@ -27,7 +31,7 @@ for dep in yt-dlp ffmpeg; do
 done
 
 # Build
-echo "Building SoundGrab..."
+echo "Building $APP_NAME..."
 swift build -c release --quiet 2>&1
 
 if [ $? -ne 0 ]; then
@@ -38,8 +42,54 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Launch
+# Create .app bundle
+echo "Creating $APP_NAME.app..."
+mkdir -p "$APP_DIR/Contents/MacOS"
+mkdir -p "$APP_DIR/Contents/Resources"
+
+cp .build/release/$APP_NAME "$APP_DIR/Contents/MacOS/$APP_NAME"
+
+cat > "$APP_DIR/Contents/Info.plist" << 'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>SoundGrab</string>
+    <key>CFBundleDisplayName</key>
+    <string>SoundGrab</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.soundgrab.app</string>
+    <key>CFBundleVersion</key>
+    <string>2.1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>2.1.0</string>
+    <key>CFBundleExecutable</key>
+    <string>SoundGrab</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>SoundGrab needs access to Apple Music to import downloaded tracks.</string>
+</dict>
+</plist>
+PLIST
+
+# Update Spotlight index
+/usr/bin/mdimport "$APP_DIR" 2>/dev/null || true
+
+echo ""
+echo "Installed to ~/Applications/$APP_NAME.app"
+echo "You can now open SoundGrab from Spotlight (Cmd+Space → SoundGrab)"
+echo ""
 echo "Launching..."
-.build/release/SoundGrab &
-disown
+open "$APP_DIR"
+
+# Close this terminal window
+osascript -e 'tell application "Terminal" to close front window' 2>/dev/null &
 exit 0
