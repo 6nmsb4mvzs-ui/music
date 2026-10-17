@@ -147,11 +147,12 @@ struct DownloadsView: View {
         VStack(spacing: 0) {
             VStack(spacing: 14) {
                 HStack(spacing: 10) {
-                    TextField(
-                        "Paste any link — SoundCloud, YouTube, Instagram, TikTok",
-                        text: $urlText
+                    NativeTextField(
+                        placeholder: "Paste any link — SoundCloud, YouTube, Instagram, TikTok",
+                        text: $urlText,
+                        onSubmit: { startDownload() }
                     )
-                    .textFieldStyle(.roundedBorder)
+                    .frame(height: 24)
                     .overlay(
                         RoundedRectangle(cornerRadius: 5)
                             .strokeBorder(
@@ -170,7 +171,6 @@ struct DownloadsView: View {
                             isFetchingPreview = false
                         }
                     }
-                    .onSubmit { startDownload() }
 
                     Button {
                         if let clip = NSPasteboard.general.string(forType: .string) {
@@ -410,14 +410,12 @@ struct PreviewCard: View {
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 6) {
-                        TextField("Title", text: $title)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.body)
+                        NativeTextField(placeholder: "Title", text: $title)
+                            .frame(height: 22)
 
                         HStack(spacing: 8) {
-                            TextField("Artist", text: $artist)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.caption)
+                            NativeTextField(placeholder: "Artist", text: $artist, fontSize: NSFont.smallSystemFontSize)
+                                .frame(height: 20)
 
                             if let dur = preview.durationText {
                                 Text(dur)

@@ -33,16 +33,16 @@ struct MetadataEditor: View {
                         Text("Title")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        TextField("Track title", text: $title)
-                            .textFieldStyle(.roundedBorder)
+                        NativeTextField(placeholder: "Track title", text: $title)
+                            .frame(height: 24)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Artist")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        TextField("Artist name", text: $artist)
-                            .textFieldStyle(.roundedBorder)
+                        NativeTextField(placeholder: "Artist name", text: $artist)
+                            .frame(height: 24)
                     }
 
                     Button("Change Cover Art") { pickImage() }

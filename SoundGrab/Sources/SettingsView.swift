@@ -47,9 +47,8 @@ struct SettingsView: View {
                         Text("Playlist name:")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        TextField("Playlist name", text: Bindable(manager.settings).playlistName)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(maxWidth: 200)
+                        NativeTextField(placeholder: "Playlist name", text: Bindable(manager.settings).playlistName)
+                            .frame(maxWidth: 200, maxHeight: 22)
                     }
 
                     Toggle("Separate playlists per source", isOn: Bindable(manager.settings).separatePlaylists)
