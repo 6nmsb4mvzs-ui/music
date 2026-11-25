@@ -11,7 +11,7 @@ final class UpdateChecker {
     var updateError: String?
     var lastChecked: Date?
 
-    private let currentVersion = "2.1.0"
+    private let currentVersion = "2.2.0"
     private let repoAPI = "https://api.github.com/repos/6nmsb4mvzs-ui/music/releases/latest"
     private let sourceArchive = "https://github.com/6nmsb4mvzs-ui/music/archive/refs/heads/main.zip"
 

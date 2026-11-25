@@ -82,9 +82,9 @@ cat > "$APP_DIR/Contents/Info.plist" << 'PLIST'
     <key>CFBundleIdentifier</key>
     <string>com.soundgrab.app</string>
     <key>CFBundleVersion</key>
-    <string>2.1.0</string>
+    <string>2.2.0</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.1.0</string>
+    <string>2.2.0</string>
     <key>CFBundleExecutable</key>
     <string>SoundGrab</string>
     <key>CFBundlePackageType</key>
