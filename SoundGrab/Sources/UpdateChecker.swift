@@ -11,7 +11,7 @@ final class UpdateChecker {
     var updateError: String?
     var lastChecked: Date?
 
-    private let currentVersion = "2.2.0"
+    private let currentVersion = "2.3.0"
     private let versionURL = "https://raw.githubusercontent.com/6nmsb4mvzs-ui/music/main/SoundGrab/Sources/UpdateChecker.swift"
     private let sourceArchive = "https://github.com/6nmsb4mvzs-ui/music/archive/refs/heads/main.zip"
 
