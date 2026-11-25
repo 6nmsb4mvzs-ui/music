@@ -12,7 +12,7 @@ final class UpdateChecker {
     var lastChecked: Date?
 
     private let currentVersion = "2.2.0"
-    private let repoAPI = "https://api.github.com/repos/6nmsb4mvzs-ui/music/releases/latest"
+    private let versionURL = "https://raw.githubusercontent.com/6nmsb4mvzs-ui/music/main/SoundGrab/Sources/UpdateChecker.swift"
     private let sourceArchive = "https://github.com/6nmsb4mvzs-ui/music/archive/refs/heads/main.zip"
 
     var updateAvailable: Bool {
@@ -26,25 +26,22 @@ final class UpdateChecker {
 
         defer { Task { @MainActor in isChecking = false; lastChecked = Date() } }
 
-        guard let url = URL(string: repoAPI) else { return }
+        guard let url = URL(string: versionURL) else { return }
         var request = URLRequest(url: url)
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        request.cachePolicy = .reloadIgnoringLocalCacheData
         request.timeoutInterval = 15
 
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
-            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+            guard let source = String(data: data, encoding: .utf8) else { return }
 
-            let tag = (json["tag_name"] as? String)?.replacingOccurrences(of: "v", with: "") ?? ""
-            let notes = json["body"] as? String ?? ""
-            let assets = json["assets"] as? [[String: Any]] ?? []
-            let zip = assets.first { ($0["name"] as? String)?.hasSuffix(".zip") == true }
-            let dlURL = (zip?["browser_download_url"] as? String).flatMap(URL.init)
+            guard let range = source.range(of: #"currentVersion\s*=\s*"([^"]+)""#, options: .regularExpression),
+                  let verRange = source[range].range(of: #""([^"]+)""#, options: .regularExpression) else { return }
+
+            let ver = source[verRange].trimmingCharacters(in: CharacterSet(charactersIn: "\""))
 
             await MainActor.run {
-                latestVersion = tag
-                releaseNotes = notes
-                downloadURL = dlURL
+                latestVersion = ver
             }
         } catch {}
     }
