@@ -336,7 +336,7 @@ struct DownloadsView: View {
             url = p.url
             editedTitle = previewTitle != p.title ? previewTitle : nil
             editedArtist = previewArtist != p.artist ? previewArtist : nil
-            editedCover = previewCover
+            editedCover = previewCover ?? p.thumbnailData
         } else {
             url = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
             editedTitle = nil
